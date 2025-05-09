@@ -1,13 +1,287 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #000;
+  color: #fff;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.05em;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+button {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 215, 0, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 215, 0, 0.8);
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+  }
+}
+
+.glow-effect {
+  animation: glow 3s infinite;
+}
+
+/* Notification badge glow and pulse effect */
+@keyframes notificationPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.7);
+  }
+  
+  70% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 10px rgba(255, 77, 77, 0);
+  }
+  
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 77, 77, 0);
+  }
+}
+
+.notification-badge {
+  animation: notificationPulse 2s infinite;
+}
+
+/* Animation for the thinking dots in chat */
+@keyframes pulse {
+  0% {
+    opacity: 0.4;
+    transform: scale(0.75);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0.4;
+    transform: scale(0.75);
+  }
+}
+
+/* Animation for brain activity particles */
+@keyframes brain-activity {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.7;
+  }
+  25% {
+    transform: translate(var(--random-x1, 100px), var(--random-y1, -50px)) scale(1.2);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate(var(--random-x2, -120px), var(--random-y2, 80px)) scale(1.5);
+    opacity: 1;
+  }
+  75% {
+    transform: translate(var(--random-x3, 50px), var(--random-y3, 120px)) scale(1.2);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.7;
+  }
+}
+
+/* Animation for the recording microphone */
+@keyframes record-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
+    transform: scale(1);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 0, 0, 0);
+    transform: scale(1.05);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0);
+    transform: scale(1);
+  }
+}
+
+/* Animation for the particles */
+@keyframes float {
+  0% {
+    transform: translateY(0px) translateX(0px);
+  }
+  50% {
+    transform: translateY(-10px) translateX(5px);
+  }
+  100% {
+    transform: translateY(0px) translateX(0px);
+  }
+}
+
+/* Enhanced glow effect for speaking */
+@keyframes speaking-glow {
+  0% {
+    box-shadow: 0 0 5px rgba(255, 140, 0, 0.5);
+    opacity: 0.7;
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(255, 140, 0, 0.8);
+    opacity: 1;
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(255, 140, 0, 0.5);
+    opacity: 0.7;
+  }
+}
+
+/* Thinking animation for the dots */
+.thinking-dots {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  justify-content: center;
+}
+
+.thinking-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: white;
+  animation: pulse 1.4s infinite;
+}
+
+.thinking-dot:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.thinking-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.thinking-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Brain activity particles during thinking mode */
+.brain-particle {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(255, 215, 0, 0.8), rgba(255, 215, 0, 0.1));
+  filter: blur(2px);
+  opacity: 0;
+  animation: brain-activity 8s infinite ease-in-out;
+  z-index: 2;
+}
+
+/* Input field transition animation */
+@keyframes expand-input {
+  from {
+    width: 200px;
+    border-radius: 0.5rem;
+  }
+  to {
+    width: 100%;
+    border-radius: 2rem;
+  }
+}
+
+.expanding-input {
+  animation: expand-input 0.5s forwards;
+}
+
+.chat-container {
+  transition: all 0.3s ease;
+}
+
+.chat-container:hover {
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+}
+
+textarea:focus {
+  outline: none;
+  border-color: rgba(255, 215, 0, 0.5);
+}
+
+/* Style for pronouncing the name */
+.anique-pronunciation {
+  font-style: italic;
+  font-size: 0.85em;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* Style for floating particles */
+.particle {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(255, 215, 0, 0.8), rgba(255, 215, 0, 0.2));
+  filter: blur(1px);
+  opacity: 0.7;
+  animation: float 3s infinite ease-in-out;
+}
+
+/* Gold placeholder text */
+.gold-placeholder::placeholder {
+  color: rgba(255, 215, 0, 0.6) !important;
+  opacity: 1;
+}
+
+/* For Firefox */
+.gold-placeholder::-moz-placeholder {
+  color: rgba(255, 215, 0, 0.6) !important;
+  opacity: 1;
+}
+
+/* For Internet Explorer */
+.gold-placeholder:-ms-input-placeholder {
+  color: rgba(255, 215, 0, 0.6) !important;
+}
+
+/* For Microsoft Edge */
+.gold-placeholder::-ms-input-placeholder {
+  color: rgba(255, 215, 0, 0.6) !important;
 }

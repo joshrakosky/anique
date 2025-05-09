@@ -1,46 +1,69 @@
-# Getting Started with Create React App
+# Anique - Advanced AI Business Assistant
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Anique is an AI business assistant inspired by J.A.R.V.I.S. from Iron Man. This project starts with a futuristic landing page featuring an interactive 3D holographic sphere visualization.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+- Striking 3D holographic sphere visualization using Three.js
+- Interactive UI elements with animations
+- Responsive design
+- Cyberpunk-inspired aesthetic with gold accents
+- Modern, clean interface
 
-### `npm start`
+## Getting Started
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### Prerequisites
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+- Node.js 14.x or higher
+- npm 6.x or higher
 
-### `npm test`
+### Installation
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. Clone the repository:
+```
+git clone <repository-url>
+cd anique
+```
 
-### `npm run build`
+2. Install dependencies:
+```
+npm install
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+3. Start the development server:
+```
+npm start
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+The application will be available at [http://localhost:3000](http://localhost:3000).
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Technology Stack
 
-### `npm run eject`
+- React
+- TypeScript
+- Three.js with React Three Fiber
+- Framer Motion for animations
+- GSAP for advanced animations
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## Project Structure
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- `src/components/AniqueSphere.tsx` - The 3D visualization of Anique
+- `src/App.tsx` - Main application component with layout and content
+- `src/index.css` - Global styles
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## Future Development
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+This landing page is just the beginning. Future development will include:
+- Natural language processing capabilities
+- Business intelligence dashboard
+- Task automation features
+- Knowledge base integration
+- Personalized business insights
 
-## Learn More
+## Inspiration
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Anique is named in honor of a beloved grandmother, combining legacy and innovation. The design is inspired by futuristic AI interfaces in science fiction, particularly J.A.R.V.I.S. from Iron Man.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## License
+
+[MIT License](LICENSE)
