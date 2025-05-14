@@ -1,0 +1,6 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Always take the request one step at a time to avoid edit_file errors that we constantly see when implementing certain changes. 

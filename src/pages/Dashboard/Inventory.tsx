@@ -37,6 +37,7 @@ interface InventoryItem {
 
 interface ProductionOrder {
   orderId: string;
+  pvNumber: string; // Added for 5-digit PV number
   productId: string;
   productName: string;
   quantity: number;
@@ -195,7 +196,8 @@ const Inventory: React.FC = () => {
   // Production orders data
   const [productionOrders, setProductionOrders] = useState<ProductionOrder[]>([
     { 
-      orderId: 'PO-24052201', 
+      orderId: 'RO-24052201', 
+      pvNumber: '12345',
       productId: 'SYK-KIT-PRO-017', 
       productName: 'Helly Hansen Men\'s Manchester Rain Jacket', 
       quantity: 150, 
@@ -205,7 +207,8 @@ const Inventory: React.FC = () => {
       isCritical: true
     },
     { 
-      orderId: 'PO-24052105', 
+      orderId: 'RO-24052105', 
+      pvNumber: '54321',
       productId: 'SYK-KIT-PRO-022', 
       productName: 'Imperial The Habanero Performance Rope Cap', 
       quantity: 300, 
@@ -215,7 +218,8 @@ const Inventory: React.FC = () => {
       isCritical: false
     },
     { 
-      orderId: 'PO-24050987', 
+      orderId: 'RO-24050987', 
+      pvNumber: '78901',
       productId: 'SYK-KIT-PRO-001', 
       productName: '23 oz Chenab Tritan Plastic Water Bottle', 
       quantity: 500, 
@@ -225,7 +229,8 @@ const Inventory: React.FC = () => {
       isCritical: true
     },
     { 
-      orderId: 'PO-24050654', 
+      orderId: 'RO-24050654', 
+      pvNumber: '21098',
       productId: 'SYK-KIT-PRO-020', 
       productName: 'OGIO Rogue Pack', 
       quantity: 120, 
@@ -235,7 +240,8 @@ const Inventory: React.FC = () => {
       isCritical: false
     },
     { 
-      orderId: 'PO-24050432', 
+      orderId: 'RO-24050432', 
+      pvNumber: '34567',
       productId: 'SYK-KIT-PRO-026', 
       productName: '32 oz. CamelBak Chute Mag Copper VSS', 
       quantity: 250, 
@@ -249,6 +255,17 @@ const Inventory: React.FC = () => {
   // Cancellation modal state
   const [showCancelModal, setShowCancelModal] = useState<boolean>(false);
   const [orderToCancel, setOrderToCancel] = useState<string | null>(null);
+  
+  // Completion modal state
+  const [completionModal, setCompletionModal] = useState<{
+    visible: boolean;
+    orderId: string;
+    orderName: string;
+  }>({
+    visible: false,
+    orderId: '',
+    orderName: ''
+  });
 
   // Apply filters and sorting
   const filteredData = React.useMemo(() => {
@@ -311,6 +328,7 @@ const Inventory: React.FC = () => {
   const lowStockCount = inventoryData.filter(item => item.status === 'Low Stock' || item.status === 'Warning').length;
   const criticalCount = inventoryData.filter(item => item.isCritical).length;
   const outOfStockCount = inventoryData.filter(item => item.status === 'Out of Stock').length;
+  const totalInventoryValue = inventoryData.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
   // Toggle reorder mode for a specific item
   const toggleReorderMode = (itemId: string) => {
@@ -420,54 +438,77 @@ const Inventory: React.FC = () => {
 
     // Function to generate data for an item
     const generateDataForItem = (currentItem: InventoryItem, color: string) => {
-    let usageData: number[] = [];
-    let salesData: number[] = [];
-    let revenueData: number[] = [];
-    
-    if (dateRange === 'week') {
-      // Generate some random but realistic-looking data based on the item properties
+      let usageData: number[] = [];
+      let salesData: number[] = [];
+      let revenueData: number[] = [];
+      
+      // Use item's ID as a seed to generate consistent data
+      const seed = currentItem.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      
+      // Helper function to generate a deterministic "random" number between min and max
+      const pseudoRandom = (index: number, min: number, max: number) => {
+        // Use a simple hash function to get a value between 0 and 1
+        const value = Math.sin(seed * (index + 1)) * 10000;
+        const normalized = Math.abs(value - Math.floor(value)); // Value between 0 and 1
+        return min + normalized * (max - min);
+      };
+      
+      if (dateRange === 'week') {
+        // Generate deterministic data based on the item properties
         const dailyUsage = Math.round(currentItem.usageMonthly / 30);
-      usageData = labels.map(() => Math.max(0, Math.round(dailyUsage * (0.7 + Math.random() * 0.6))));
-      salesData = usageData.map(u => Math.round(u * (0.9 + Math.random() * 0.2)));
+        usageData = labels.map((_, index) => 
+          Math.max(0, Math.round(dailyUsage * (0.7 + pseudoRandom(index, 0, 0.6))))
+        );
+        salesData = usageData.map((u, index) => 
+          Math.round(u * (0.9 + pseudoRandom(index, 0, 0.2)))
+        );
         revenueData = salesData.map(s => Math.round(s * currentItem.price));
-    } else if (dateRange === 'month') {
+      } else if (dateRange === 'month') {
         const dailyUsage = Math.round(currentItem.usageMonthly / 30);
-      usageData = labels.map(() => Math.max(0, Math.round(dailyUsage * (0.7 + Math.random() * 0.6))));
-      salesData = usageData.map(u => Math.round(u * (0.9 + Math.random() * 0.2)));
+        usageData = labels.map((_, index) => 
+          Math.max(0, Math.round(dailyUsage * (0.7 + pseudoRandom(index, 0, 0.6))))
+        );
+        salesData = usageData.map((u, index) => 
+          Math.round(u * (0.9 + pseudoRandom(index, 0, 0.2)))
+        );
         revenueData = salesData.map(s => Math.round(s * currentItem.price));
-    } else {
+      } else {
         const monthlyUsage = currentItem.usageMonthly;
-      usageData = labels.map(() => Math.max(0, Math.round(monthlyUsage * (0.7 + Math.random() * 0.6))));
-      salesData = usageData.map(u => Math.round(u * (0.9 + Math.random() * 0.2)));
+        usageData = labels.map((_, index) => 
+          Math.max(0, Math.round(monthlyUsage * (0.7 + pseudoRandom(index, 0, 0.6))))
+        );
+        salesData = usageData.map((u, index) => 
+          Math.round(u * (0.9 + pseudoRandom(index, 0, 0.2)))
+        );
         revenueData = salesData.map(s => Math.round(s * currentItem.price));
-    }
-    
+      }
+      
       // Return appropriate dataset based on selected metric
-    if (metric === 'usage') {
-      return {
+      if (metric === 'usage') {
+        return {
           label: currentItem.name,
-            data: usageData,
+          data: usageData,
           borderColor: color,
           backgroundColor: color.replace('1)', '0.1)'),
-            tension: 0.4,
+          tension: 0.4,
           fill: false, // Changed to false for better comparison
-      };
-    } else if (metric === 'sales') {
-      return {
+        };
+      } else if (metric === 'sales') {
+        return {
           label: currentItem.name,
-            data: salesData,
+          data: salesData,
           borderColor: color,
           backgroundColor: color.replace('1)', '0.1)'),
-            tension: 0.4,
+          tension: 0.4,
           fill: false,
-      };
-    } else {
-      return {
+        };
+      } else {
+        return {
           label: currentItem.name,
-            data: revenueData,
+          data: revenueData,
           borderColor: color,
           backgroundColor: color.replace('1)', '0.1)'),
-            tension: 0.4,
+          tension: 0.4,
           fill: false,
         };
       }
@@ -565,10 +606,34 @@ const Inventory: React.FC = () => {
 
   // Send email proposal to customer
   const sendEmailProposal = () => {
-    // This function will be implemented later to send email notification to customer
-    console.log('Email proposal will be sent to customer');
-    // Add a visual feedback that the button was clicked
-    alert('Email proposal feature will be implemented soon');
+    if (confirmedItem) {
+      // Create email subject and body
+      const subject = `Reorder Proposal: ${confirmedItem.name}`;
+      const body = `
+Hello,
+
+Please find the details of the proposed reorder below:
+
+Item: ${confirmedItem.name}
+SKU: ${confirmedItem.sku}
+Current Quantity: ${confirmedItem.quantity}
+Reorder Quantity: +${reorderQuantities[confirmedItem.id] || 0}
+New Total Quantity: ${confirmedItem.quantity + (reorderQuantities[confirmedItem.id] || 0)}
+Projected Months: ${((confirmedItem.quantity + (reorderQuantities[confirmedItem.id] || 0)) / confirmedItem.usageMonthly).toFixed(1)}
+Total Cost: $${((reorderQuantities[confirmedItem.id] || 0) * confirmedItem.price).toFixed(2)}
+
+Thank you,
+Anique Inventory Management
+      `;
+
+      // Encode subject and body for mailto URL
+      const encodedSubject = encodeURIComponent(subject);
+      const encodedBody = encodeURIComponent(body);
+
+      // Create mailto URL and open it
+      const mailtoLink = `mailto:?subject=${encodedSubject}&body=${encodedBody}`;
+      window.open(mailtoLink, '_blank');
+    }
   };
 
   // Download artwork
@@ -750,9 +815,9 @@ const Inventory: React.FC = () => {
     );
   };
 
-  // Initialize some items with alignment needed
-  useEffect(() => {
-    // Only run this effect once on initial load
+  // Initialize alignment data on component mount if not already set
+  React.useEffect(() => {
+    // Check if alignment data needs to be initialized
     const shouldInitialize = inventoryData.some(item => item.needsAlignment === undefined);
     
     if (shouldInitialize) {
@@ -760,10 +825,12 @@ const Inventory: React.FC = () => {
       const updatedInventory = inventoryData.map((item, index) => {
         // Add alignment data to some items (every 3rd item for this example)
         if (index % 3 === 0) {
-          const variance = Math.floor(Math.random() * 20) - 10; // Random variance between -10 and +10
+          // Use fixed differences instead of random
+          // Even indices get +5, odd indices get -5
+          const fixedDiff = index % 2 === 0 ? 5 : -5;
           return {
             ...item,
-            quantityAlt: Math.max(0, item.quantity + variance),
+            quantityAlt: Math.max(0, item.quantity + fixedDiff),
             needsAlignment: true
           };
         }
@@ -780,8 +847,8 @@ const Inventory: React.FC = () => {
       if (item.id === itemId) {
         return {
           ...item,
-          quantityAlt: item.quantity,
-          needsAlignment: false
+          quantity: item.quantityAlt || item.quantity, // Update the main quantity to match the alternate
+          needsAlignment: false // Mark as not needing alignment to remove from the list
         };
       }
       return item;
@@ -794,11 +861,11 @@ const Inventory: React.FC = () => {
   const undoAlignment = (itemId: string) => {
     const updatedInventory = inventoryData.map(item => {
       if (item.id === itemId) {
-        // Restore previous quantityAlt with slight difference to ensure alignment is needed
-        const variance = Math.floor(Math.random() * 20) - 10;
+        // Instead of random variance, use a small fixed difference
+        // This ensures alignment is still needed but numbers don't spaz out
         return {
           ...item,
-          quantityAlt: Math.max(0, item.quantity + variance),
+          quantityAlt: Math.max(0, item.quantity + 5), // Fixed +5 difference
           needsAlignment: true
         };
       }
@@ -848,6 +915,26 @@ const Inventory: React.FC = () => {
     }
   };
 
+  // Complete production order
+  const completeOrder = (orderId: string) => {
+    setProductionOrders(prevOrders => {
+      return prevOrders.map(order => {
+        if (order.orderId === orderId) {
+          return {
+            ...order,
+            status: 'Completed'
+          };
+        }
+        return order;
+      });
+    });
+    setCompletionModal({
+      visible: false,
+      orderId: '',
+      orderName: ''
+    });
+  };
+
   return (
     <div style={{ 
       padding: '2rem 2rem 2rem 2rem', // Reduced top padding to move elements up
@@ -892,8 +979,37 @@ const Inventory: React.FC = () => {
               fontSize: '1.75rem', 
               fontWeight: 'bold',
               fontFamily: "'Rajdhani', sans-serif",
+              color: 'rgba(255, 215, 0, 0.9)',
             }}>
               {totalItems.toLocaleString()}
+            </p>
+          </motion.div>
+
+          {/* Inventory Value */}
+          <motion.div
+            whileHover={{ y: -5, boxShadow: '0 10px 20px rgba(0, 0, 0, 0.2)' }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            style={{
+              background: 'rgba(20, 20, 30, 0.6)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '1rem',
+              padding: '1.5rem',
+              border: '1px solid rgba(255, 215, 0, 0.2)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <h3 style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.7)', marginBottom: '0.5rem' }}>
+              Inventory Value
+            </h3>
+            <p style={{ 
+              fontSize: '1.75rem', 
+              fontWeight: 'bold',
+              fontFamily: "'Rajdhani', sans-serif",
+              color: 'rgba(255, 215, 0, 0.9)',
+            }}>
+              ${totalInventoryValue.toLocaleString()}
             </p>
           </motion.div>
 
@@ -902,7 +1018,7 @@ const Inventory: React.FC = () => {
             whileHover={{ y: -5, boxShadow: '0 10px 20px rgba(0, 0, 0, 0.2)' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
             style={{
               background: 'rgba(20, 20, 30, 0.6)',
               backdropFilter: 'blur(10px)',
@@ -922,34 +1038,6 @@ const Inventory: React.FC = () => {
               color: lowStockCount > 0 ? 'rgba(255, 180, 0, 0.9)' : 'white',
             }}>
               {lowStockCount}
-            </p>
-          </motion.div>
-
-          {/* Critical Items */}
-          <motion.div
-            whileHover={{ y: -5, boxShadow: '0 10px 20px rgba(0, 0, 0, 0.2)' }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
-            style={{
-              background: 'rgba(20, 20, 30, 0.6)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '1rem',
-              padding: '1.5rem',
-              border: '1px solid rgba(255, 215, 0, 0.2)',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-            }}
-          >
-            <h3 style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.7)', marginBottom: '0.5rem' }}>
-              Critical Items
-            </h3>
-            <p style={{ 
-              fontSize: '1.75rem', 
-              fontWeight: 'bold',
-              fontFamily: "'Rajdhani', sans-serif",
-              color: criticalCount > 0 ? 'rgba(255, 80, 80, 0.9)' : 'white',
-            }}>
-              {criticalCount}
             </p>
           </motion.div>
 
@@ -1225,7 +1313,7 @@ const Inventory: React.FC = () => {
                   position: 'absolute',
                   top: '-8px',
                   right: '-8px',
-                  background: viewMode === 'alignment' ? 'rgba(0, 200, 83, 0.9)' : 'rgba(255, 80, 80, 0.9)',
+                  background: 'rgba(255, 80, 80, 0.9)', // Always red regardless of viewMode
                   color: 'rgba(255, 215, 0, 0.9)',
                   width: '20px',
                   height: '20px',
@@ -1261,7 +1349,7 @@ const Inventory: React.FC = () => {
                 justifyContent: 'center',
                 background: showCriticalOnly ? 'rgba(255, 80, 80, 0.3)' : 'rgba(255, 215, 0, 0.2)',
                 border: showCriticalOnly ? '1px solid rgba(255, 80, 80, 0.5)' : '1px solid rgba(255, 215, 0, 0.5)',
-                color: 'white',
+                color: showCriticalOnly ? 'white' : 'rgba(255, 215, 0, 0.7)',
                 cursor: 'pointer',
                 fontSize: '1.2rem',
                 animation: showCriticalOnly ? 'pulse 1s infinite' : 'none',
@@ -1293,15 +1381,16 @@ const Inventory: React.FC = () => {
                 justifyContent: 'center',
                 background: 'rgba(255, 215, 0, 0.2)',
                 border: '1px solid rgba(255, 215, 0, 0.5)',
-                color: 'white',
+                color: 'rgba(255, 215, 0, 0.7)',
                 cursor: 'pointer',
                 fontSize: '1.2rem',
               }}
               title="Analytics"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21 21H3V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M21 7L12.5 15.5L8.5 11.5L3 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M18 20V10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M12 20V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M6 20V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </motion.button>
             
@@ -1323,7 +1412,7 @@ const Inventory: React.FC = () => {
                 justifyContent: 'center',
                 background: 'rgba(255, 215, 0, 0.2)',
                 border: '1px solid rgba(255, 215, 0, 0.5)',
-                color: 'white',
+                color: 'rgba(255, 215, 0, 0.7)',
                 cursor: 'pointer',
                 fontSize: '1.2rem',
               }}
@@ -1354,7 +1443,7 @@ const Inventory: React.FC = () => {
                 justifyContent: 'center',
                 background: 'rgba(255, 215, 0, 0.2)',
                 border: '1px solid rgba(255, 215, 0, 0.5)',
-                color: 'white',
+                color: 'rgba(255, 215, 0, 0.7)',
                 cursor: 'pointer',
                 fontSize: '1.5rem',
               }}
@@ -1386,6 +1475,7 @@ const Inventory: React.FC = () => {
                 background: 'rgba(0, 0, 0, 0.7)',
                 backdropFilter: 'blur(5px)',
               }}
+              onClick={() => setHoveredItem(null)}
             >
               <motion.div
                 whileHover={{ scale: 1.05 }}
@@ -1399,8 +1489,39 @@ const Inventory: React.FC = () => {
                   maxHeight: '400px',
                   boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)',
                   border: '1px solid rgba(255, 215, 0, 0.3)',
+                  position: 'relative',
                 }}
+                onClick={(e) => e.stopPropagation()}
               >
+                {/* Close (X) button */}
+                <motion.button
+                  whileHover={{ 
+                    scale: 1.1,
+                    backgroundColor: 'rgba(255, 215, 0, 0.3)',
+                  }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setHoveredItem(null)}
+                  style={{
+                    position: 'absolute',
+                    top: '0.75rem',
+                    right: '0.75rem',
+                    width: '30px',
+                    height: '30px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'rgba(255, 215, 0, 0.15)',
+                    border: '1px solid rgba(255, 215, 0, 0.5)',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: '1rem',
+                    zIndex: 10,
+                  }}
+                >
+                  ✕
+                </motion.button>
+                
                 <img 
                   src={hoveredItem.image} 
                   alt={hoveredItem.name} 
@@ -1543,7 +1664,7 @@ const Inventory: React.FC = () => {
                     onClick={() => requestSort('status')}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                      <span>Status</span>
+                      <span>{isReorderMode ? 'Confirm' : 'Status'}</span>
                       {sortConfig?.key === 'status' && !isReorderMode && (
                         <span>{sortConfig.direction === 'ascending' ? '↑' : '↓'}</span>
                       )}
@@ -1568,17 +1689,17 @@ const Inventory: React.FC = () => {
                     }}
                   >
                     <td style={{ padding: '1rem', textAlign: 'center' }}>{item.id}</td>
-                    <td style={{ padding: '1rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <div 
-                            onClick={() => setHoveredItem(item)}
-                            style={{
-                              cursor: 'pointer',
-                              textDecoration: 'underline',
-                              textDecorationStyle: 'dotted',
-                              textDecorationColor: 'rgba(255, 215, 0, 0.5)',
-                              display: 'inline-block',
-                            }}
+                    <td style={{ padding: '1rem', textAlign: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                        <div 
+                          onClick={() => setHoveredItem(item)}
+                          style={{
+                            cursor: 'pointer',
+                            textDecoration: 'underline',
+                            textDecorationStyle: 'dotted',
+                            textDecorationColor: 'rgba(255, 215, 0, 0.5)',
+                            display: 'inline-block',
+                          }}
                         >
                           {item.name}
                         </div>
@@ -1657,7 +1778,7 @@ const Inventory: React.FC = () => {
                     {/* Status or Confirm/Cancel */}
                     <td style={{ padding: '1rem', textAlign: 'center' }}>
                       {isReorderMode && reorderItem === item.id ? (
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                           <motion.button
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
@@ -1757,7 +1878,7 @@ const Inventory: React.FC = () => {
                           whileHover={{ 
                             scale: 1.1, 
                             color: 'rgba(255, 215, 0, 1)',
-                            boxShadow: hasProductionOrder(item.id) ? 
+                            boxShadow: hasProductionOrder(item.id) || reorderItem === item.id ? 
                               '0 0 10px rgba(130, 180, 255, 0.5)' : 
                               '0 0 10px rgba(255, 215, 0, 0.3)'
                           }}
@@ -1771,19 +1892,19 @@ const Inventory: React.FC = () => {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            background: hasProductionOrder(item.id) ? 'rgba(130, 180, 255, 0.25)' : 'rgba(255, 215, 0, 0.15)',
-                            border: hasProductionOrder(item.id) ? '1px solid rgba(130, 180, 255, 0.7)' : '1px solid rgba(255, 215, 0, 0.5)',
-                            color: hasProductionOrder(item.id) ? 'rgba(130, 180, 255, 0.9)' : 'rgba(255, 215, 0, 0.7)',
+                            background: hasProductionOrder(item.id) || reorderItem === item.id ? 'rgba(130, 180, 255, 0.25)' : 'rgba(255, 215, 0, 0.15)',
+                            border: hasProductionOrder(item.id) || reorderItem === item.id ? '1px solid rgba(130, 180, 255, 0.7)' : '1px solid rgba(255, 215, 0, 0.5)',
+                            color: hasProductionOrder(item.id) || reorderItem === item.id ? 'rgba(130, 180, 255, 0.9)' : 'rgba(255, 215, 0, 0.7)',
                             cursor: 'pointer',
                             fontSize: '0.875rem',
                             opacity: isReorderMode && reorderItem !== item.id ? 0.5 : 1,
                             pointerEvents: isReorderMode && reorderItem !== item.id ? 'none' : 'auto',
-                            animation: hasProductionOrder(item.id) ? 'blueGlow 1.5s infinite' : 'none',
+                            animation: hasProductionOrder(item.id) || reorderItem === item.id ? 'blueGlow 1.5s infinite' : 'none',
                           }}
                         >
                           <div
                             style={{
-                              animation: hasProductionOrder(item.id) ? 'spin 4s linear infinite' : 'none',
+                              animation: hasProductionOrder(item.id) || reorderItem === item.id ? 'spin 4s linear infinite' : 'none',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
@@ -1815,7 +1936,7 @@ const Inventory: React.FC = () => {
                             justifyContent: 'center',
                             background: 'rgba(255, 215, 0, 0.15)',
                             border: '1px solid rgba(255, 215, 0, 0.5)',
-                            color: 'white',
+                            color: 'rgba(255, 215, 0, 0.7)',
                             cursor: 'pointer',
                             fontSize: '0.875rem',
                             opacity: isReorderMode && reorderItem !== item.id ? 0.5 : 1,
@@ -1852,7 +1973,7 @@ const Inventory: React.FC = () => {
                             justifyContent: 'center',
                             background: item.note ? 'rgba(0, 200, 83, 0.25)' : 'rgba(255, 215, 0, 0.15)',
                             border: item.note ? '1px solid rgba(0, 200, 83, 0.7)' : '1px solid rgba(255, 215, 0, 0.5)',
-                            color: item.note ? 'rgba(0, 200, 83, 0.9)' : 'white',
+                            color: item.note ? 'rgba(0, 200, 83, 0.9)' : 'rgba(255, 215, 0, 0.7)',
                             cursor: 'pointer',
                             fontSize: '0.875rem',
                             opacity: isReorderMode && reorderItem !== item.id ? 0.5 : 1,
@@ -1891,7 +2012,8 @@ const Inventory: React.FC = () => {
                 <thead style={{ position: 'sticky', top: 0, zIndex: 10 }}>
                   <tr style={{ backgroundColor: 'rgba(20, 20, 30, 0.95)', textAlign: 'center' }}>
                     <th style={{ padding: '1rem', position: 'sticky', top: 0 }}>Order Date</th>
-                    <th style={{ padding: '1rem', position: 'sticky', top: 0 }}>Order #</th>
+                    <th style={{ padding: '1rem', position: 'sticky', top: 0 }}>RO #</th>
+                    <th style={{ padding: '1rem', position: 'sticky', top: 0 }}>PV #</th>
                     <th style={{ padding: '1rem', position: 'sticky', top: 0 }}>ID</th>
                     <th style={{ padding: '1rem', position: 'sticky', top: 0 }}>Item</th>
                     <th style={{ padding: '1rem', position: 'sticky', top: 0 }}>Qty</th>
@@ -1921,6 +2043,7 @@ const Inventory: React.FC = () => {
                         })}
                       </td>
                       <td style={{ padding: '1rem', textAlign: 'center' }}>{order.orderId}</td>
+                      <td style={{ padding: '1rem', textAlign: 'center' }}>{order.pvNumber}</td>
                       <td style={{ padding: '1rem', textAlign: 'center' }}>{order.productId}</td>
                       <td style={{ padding: '1rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -2004,7 +2127,7 @@ const Inventory: React.FC = () => {
                               justifyContent: 'center',
                               background: 'rgba(255, 215, 0, 0.15)',
                               border: '1px solid rgba(255, 215, 0, 0.5)',
-                              color: 'white',
+                              color: 'rgba(255, 215, 0, 0.7)',
                               cursor: 'pointer',
                               fontSize: '0.875rem',
                             }}
@@ -2012,6 +2135,39 @@ const Inventory: React.FC = () => {
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                               <path d="M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                               <path d="M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </motion.button>
+                          
+                          {/* Complete Order Button */}
+                          <motion.button
+                            whileHover={{ 
+                              scale: 1.1, 
+                              color: 'rgba(0, 200, 83, 1)',
+                              boxShadow: '0 0 10px rgba(0, 200, 83, 0.3)'
+                            }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() => setCompletionModal({
+                              visible: true,
+                              orderId: order.orderId,
+                              orderName: order.productName
+                            })}
+                            title="Complete Order"
+                            style={{
+                              width: '32px',
+                              height: '32px',
+                              borderRadius: '50%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: 'rgba(0, 200, 83, 0.15)',
+                              border: '1px solid rgba(0, 200, 83, 0.3)',
+                              color: 'rgba(0, 200, 83, 0.7)',
+                              cursor: 'pointer',
+                              fontSize: '0.875rem',
+                            }}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
                           </motion.button>
                         </div>
@@ -2054,8 +2210,8 @@ const Inventory: React.FC = () => {
                   <tr style={{ backgroundColor: 'rgba(20, 20, 30, 0.95)', textAlign: 'center' }}>
                     <th style={{ padding: '1rem', position: 'sticky', top: 0 }}>ID</th>
                     <th style={{ padding: '1rem', position: 'sticky', top: 0 }}>Item</th>
-                    <th style={{ padding: '1rem', position: 'sticky', top: 0 }}>Qty 1</th>
-                    <th style={{ padding: '1rem', position: 'sticky', top: 0 }}>Qty 2</th>
+                    <th style={{ padding: '1rem', position: 'sticky', top: 0 }}>FMG</th>
+                    <th style={{ padding: '1rem', position: 'sticky', top: 0 }}>PV</th>
                     <th style={{ padding: '1rem', position: 'sticky', top: 0 }}>Diff</th>
                     <th style={{ padding: '1rem', position: 'sticky', top: 0 }}>Diff (%)</th>
                     <th style={{ padding: '1rem', position: 'sticky', top: 0 }}>Actions</th>
@@ -2075,8 +2231,8 @@ const Inventory: React.FC = () => {
                       }}
                     >
                       <td style={{ padding: '1rem', textAlign: 'center' }}>{item.id}</td>
-                      <td style={{ padding: '1rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <td style={{ padding: '1rem', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
                           <div 
                             onClick={() => setHoveredItem(item)}
                             style={{
@@ -2129,7 +2285,7 @@ const Inventory: React.FC = () => {
                               alignItems: 'center',
                               justifyContent: 'center',
                               background: 'rgba(0, 200, 83, 0.15)',
-                              border: '1px solid rgba(0, 200, 83, 0.5)',
+                              border: '1px solid rgba(0, 200, 83, 0.3)',
                               color: 'rgba(0, 200, 83, 0.7)',
                               cursor: 'pointer',
                               fontSize: '0.875rem',
@@ -2144,8 +2300,8 @@ const Inventory: React.FC = () => {
                           <motion.button
                             whileHover={{ 
                               scale: 1.1, 
-                              color: 'rgba(255, 80, 80, 1)',
-                              boxShadow: '0 0 10px rgba(255, 80, 80, 0.3)'
+                              color: 'rgba(255, 215, 0, 1)',
+                              boxShadow: '0 0 10px rgba(255, 215, 0, 0.3)'
                             }}
                             whileTap={{ scale: 0.9 }}
                             onClick={() => undoAlignment(item.id)}
@@ -2157,9 +2313,9 @@ const Inventory: React.FC = () => {
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              background: 'rgba(255, 80, 80, 0.15)',
-                              border: '1px solid rgba(255, 80, 80, 0.5)',
-                              color: 'rgba(255, 80, 80, 0.7)',
+                              background: 'rgba(255, 215, 0, 0.15)',
+                              border: '1px solid rgba(255, 215, 0, 0.3)',
+                              color: 'rgba(255, 215, 0, 0.7)',
                               cursor: 'pointer',
                               fontSize: '0.875rem',
                             }}
@@ -2208,7 +2364,7 @@ const Inventory: React.FC = () => {
             </span>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <motion.button
-                whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.15)' }}
+                whileHover={{ backgroundColor: 'rgba(255, 215, 0, 0.15)' }}
                 whileTap={{ scale: 0.95 }}
                 style={{
                   width: '36px',
@@ -2237,7 +2393,7 @@ const Inventory: React.FC = () => {
                   borderRadius: '0.5rem',
                   background: 'rgba(255, 255, 255, 0.05)',
                   border: 'none',
-                  color: 'white',
+                  color: 'rgba(255, 215, 0, 0.7)',
                   cursor: 'pointer',
                 }}
               >
@@ -2368,12 +2524,6 @@ const Inventory: React.FC = () => {
                       marginBottom: '0.5rem',
                       fontSize: '0.875rem',
                     }}>
-                      ID: {confirmedItem.id}
-                    </p>
-                    <p style={{ 
-                      color: 'rgba(255, 255, 255, 0.7)', 
-                      fontSize: '0.875rem',
-                    }}>
                       SKU: {confirmedItem.sku}
                     </p>
                   </div>
@@ -2420,6 +2570,17 @@ const Inventory: React.FC = () => {
                   <div style={{ 
                     display: 'flex', 
                     justifyContent: 'space-between',
+                    marginBottom: '0.75rem',
+                    fontSize: '0.875rem',
+                  }}>
+                    <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Projected Months:</span>
+                    <span style={{ color: 'rgba(0, 150, 220, 1)' }}>
+                      {((confirmedItem.quantity + (reorderQuantities[confirmedItem.id] || 0)) / confirmedItem.usageMonthly).toFixed(1)}
+                    </span>
+                  </div>
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between',
                     fontSize: '0.875rem',
                   }}>
                     <span style={{ color: 'rgba(255, 255, 255, 0.7)' }}>Total Cost:</span>
@@ -2439,10 +2600,35 @@ const Inventory: React.FC = () => {
                   flexDirection: 'column',
                   gap: '0.75rem'
                 }}>
+                  <motion.button
+                    whileHover={{ scale: 1.02, backgroundColor: 'rgba(0, 180, 220, 0.3)' }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={downloadArtwork}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      borderRadius: '0.5rem',
+                      background: 'rgba(0, 180, 220, 0.2)',
+                      color: 'white',
+                      border: '1px solid rgba(0, 180, 220, 0.5)',
+                      cursor: 'pointer',
+                      fontFamily: "'Rajdhani', sans-serif",
+                      fontWeight: 600,
+                      fontSize: '0.875rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.5rem',
+                      alignSelf: 'center',
+                      marginBottom: '0.5rem'
+                    }}
+                  >
+                    <span style={{ fontSize: '1rem' }}>📥</span> Download Artwork
+                  </motion.button>
+                  
                   <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'space-between'
+                    justifyContent: 'center'
                   }}>
                     <div style={{
                       display: 'flex',
@@ -2472,67 +2658,46 @@ const Inventory: React.FC = () => {
                       </label>
                     </div>
                   </div>
-                  <motion.button
-                    whileHover={{ scale: 1.02, backgroundColor: 'rgba(0, 180, 220, 0.3)' }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={downloadArtwork}
-                    style={{
-                      padding: '0.5rem 1rem',
-                      borderRadius: '0.5rem',
-                      background: 'rgba(0, 180, 220, 0.2)',
-                      color: 'white',
-                      border: '1px solid rgba(0, 180, 220, 0.5)',
-                      cursor: 'pointer',
-                      fontFamily: "'Rajdhani', sans-serif",
-                      fontWeight: 600,
-                      fontSize: '0.875rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.5rem',
-                      alignSelf: 'flex-start'
-                    }}
-                  >
-                    <span style={{ fontSize: '1rem' }}>📥</span> Download Artwork
-                  </motion.button>
                 </div>
                 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', width: '100%' }}>
                   <motion.button
-                    whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 80, 80, 0.3)' }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={cancelReorder}
-                    style={{
-                      padding: '0.75rem 1.5rem',
-                      borderRadius: '0.5rem',
-                      background: 'rgba(255, 80, 80, 0.2)',
-                      color: 'white',
-                      border: '1px solid rgba(255, 80, 80, 0.5)',
-                      cursor: 'pointer',
-                      fontFamily: "'Rajdhani', sans-serif",
-                      fontWeight: 600,
-                    }}
-                  >
-                    Cancel
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.05, backgroundColor: 'rgba(0, 200, 83, 0.3)' }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ backgroundColor: 'rgba(0, 200, 83, 0.8)' }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={processReorder}
                     disabled={!artworkConfirmed}
                     style={{
-                      padding: '0.75rem 1.5rem',
+                      flex: 1,
+                      padding: '0.75rem',
                       borderRadius: '0.5rem',
-                      background: artworkConfirmed ? 'rgba(0, 200, 83, 0.2)' : 'rgba(100, 100, 100, 0.2)',
+                      border: 'none',
+                      backgroundColor: artworkConfirmed ? 'rgba(0, 200, 83, 0.6)' : 'rgba(100, 100, 100, 0.2)',
                       color: 'white',
-                      border: artworkConfirmed ? '1px solid rgba(0, 200, 83, 0.5)' : '1px solid rgba(100, 100, 100, 0.5)',
                       cursor: artworkConfirmed ? 'pointer' : 'not-allowed',
-                      fontFamily: "'Rajdhani', sans-serif",
-                      fontWeight: 600,
+                      fontSize: '0.9rem',
+                      fontWeight: 'bold',
                       opacity: artworkConfirmed ? 1 : 0.7,
                     }}
                   >
                     Confirm Order
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={cancelReorder}
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem',
+                      borderRadius: '0.5rem',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      backgroundColor: 'transparent',
+                      color: 'rgba(255, 255, 255, 0.8)',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    Cancel
                   </motion.button>
                 </div>
               </motion.div>
@@ -2651,7 +2816,7 @@ const Inventory: React.FC = () => {
                       alignItems: 'center',
                       justifyContent: 'center',
                       background: 'rgba(255, 215, 0, 0.15)',
-                      border: '1px solid rgba(255, 215, 0, 0.5)',
+                      border: '1px solid rgba(255, 215, 0, 0.3)',
                       color: 'white',
                       cursor: 'pointer',
                       fontSize: '1rem',
@@ -4035,41 +4200,43 @@ const Inventory: React.FC = () => {
                 display: 'flex', 
                 justifyContent: 'center', 
                 gap: '1rem',
-                flexWrap: 'wrap'
+                width: '100%'
               }}>
                 <motion.button
-                  whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setShowCancelModal(false)}
-                  style={{
-                    padding: '0.75rem 1.5rem',
-                    borderRadius: '0.5rem',
-                    background: 'rgba(30, 30, 40, 0.8)',
-                    color: 'white',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    cursor: 'pointer',
-                    fontFamily: "'Rajdhani', sans-serif",
-                    fontWeight: 600,
-                  }}
-                >
-                  Keep Order
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 215, 0, 0.3)' }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ backgroundColor: 'rgba(255, 215, 0, 0.8)' }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={confirmCancelOrder}
                   style={{
-                    padding: '0.75rem 1.5rem',
+                    flex: 1,
+                    padding: '0.75rem',
                     borderRadius: '0.5rem',
-                    background: 'rgba(255, 215, 0, 0.2)',
+                    border: 'none',
+                    backgroundColor: 'rgba(255, 215, 0, 0.6)',
                     color: 'white',
-                    border: '1px solid rgba(255, 215, 0, 0.5)',
                     cursor: 'pointer',
-                    fontFamily: "'Rajdhani', sans-serif",
-                    fontWeight: 600,
+                    fontSize: '0.9rem',
+                    fontWeight: 'bold',
                   }}
                 >
                   Yes, Cancel Order
+                </motion.button>
+                <motion.button
+                  whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setShowCancelModal(false)}
+                  style={{
+                    flex: 1,
+                    padding: '0.75rem',
+                    borderRadius: '0.5rem',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    backgroundColor: 'transparent',
+                    color: 'rgba(255, 255, 255, 0.8)',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  Keep Order
                 </motion.button>
               </div>
             </motion.div>
@@ -4423,6 +4590,120 @@ const Inventory: React.FC = () => {
                 >
                   View Analytics
                 </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Order Completion Modal */}
+      <AnimatePresence>
+        {completionModal.visible && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              zIndex: 9999,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              backdropFilter: 'blur(4px)',
+            }}
+            onClick={() => setCompletionModal({visible: false, orderId: '', orderName: ''})}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              style={{
+                backgroundColor: 'rgba(30, 30, 40, 0.95)',
+                borderRadius: '1rem',
+                padding: '2rem',
+                maxWidth: '450px',
+                width: '100%',
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4)',
+                border: '1px solid rgba(255, 215, 0, 0.2)',
+                backdropFilter: 'blur(10px)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center' }}>
+                <div 
+                  style={{ 
+                    width: '70px', 
+                    height: '70px', 
+                    borderRadius: '50%', 
+                    backgroundColor: 'rgba(0, 200, 83, 0.15)',
+                    border: '1px solid rgba(0, 200, 83, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'rgba(0, 200, 83, 0.9)',
+                  }}
+                >
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                
+                <div style={{ textAlign: 'center' }}>
+                  <h3 style={{ fontSize: '1.25rem', marginBottom: '0.75rem', color: 'rgba(255, 215, 0, 0.9)' }}>
+                    Complete Reorder
+                  </h3>
+                  <p style={{ color: 'rgba(255, 255, 255, 0.8)', marginBottom: '0.5rem' }}>
+                    Are you sure you want to mark <strong>{completionModal.orderName}</strong> order as completed?
+                  </p>
+                  <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                    This will set the status to "Completed" and add the items to inventory.
+                  </p>
+                </div>
+                
+                <div style={{ display: 'flex', gap: '1rem', width: '100%' }}>
+                  <motion.button
+                    whileHover={{ backgroundColor: 'rgba(0, 200, 83, 0.8)' }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => completeOrder(completionModal.orderId)}
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem',
+                      borderRadius: '0.5rem',
+                      border: 'none',
+                      backgroundColor: 'rgba(0, 200, 83, 0.6)',
+                      color: 'white',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    Complete Order
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setCompletionModal({visible: false, orderId: '', orderName: ''})}
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem',
+                      borderRadius: '0.5rem',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      backgroundColor: 'transparent',
+                      color: 'rgba(255, 255, 255, 0.8)',
+                      cursor: 'pointer',
+                      fontSize: '0.9rem',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    Cancel
+                  </motion.button>
+                </div>
               </div>
             </motion.div>
           </motion.div>

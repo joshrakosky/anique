@@ -7,7 +7,7 @@ import Navbar from './components/Navigation/Navbar';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Apparel from './pages/Dashboard/Apparel';
 import Inventory from './pages/Dashboard/Inventory';
-import EComm from './pages/Dashboard/EComm';
+import Projects from './pages/Dashboard/Projects';
 import Login from './pages/Auth/Login';
 import { updateSpeechState } from './components/AniqueSphere';
 
@@ -276,11 +276,11 @@ const LandingPage = () => {
                 disabled={isThinking}
                 style={{
                   position: 'absolute',
-                  right: '12px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'rgba(255, 215, 0, 0.15)',
-                  border: 'none',
+                  right: '8px',
+                  top: 'calc(50% - 23px)',
+                  transform: 'none',
+                  background: 'rgba(255, 215, 0, 0.3)',
+                  border: '1px solid rgba(255, 215, 0, 0.5)',
                   borderRadius: '50%',
                   width: '38px',
                   height: '38px',
@@ -288,13 +288,13 @@ const LandingPage = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: isThinking ? 'default' : 'pointer',
-                  color: 'rgba(255, 215, 0, 0.7)',
+                  color: 'rgba(255, 215, 0, 0.9)',
                   fontSize: '1.25rem',
                   zIndex: 2
                 }}
                 whileHover={isThinking ? {} : { 
                   scale: 1.1, 
-                  backgroundColor: 'rgba(255, 215, 0, 0.25)',
+                  backgroundColor: 'rgba(255, 215, 0, 0.5)',
                   color: 'rgba(255, 215, 0, 1)',
                   boxShadow: '0 0 15px rgba(255, 215, 0, 0.5)'
                 }}
@@ -464,10 +464,10 @@ const App = () => {
           } 
         />
         <Route 
-          path="/dashboard/ecomm" 
+          path="/dashboard/projects" 
           element={
             <DashboardLayout>
-              <EComm />
+              <Projects />
             </DashboardLayout>
           } 
         />

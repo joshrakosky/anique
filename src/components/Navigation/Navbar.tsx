@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { FingerPrintIcon } from '@heroicons/react/24/outline';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
@@ -9,21 +10,248 @@ const Navbar: React.FC = () => {
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [unreadNotifications, setUnreadNotifications] = useState(3); // Example: 3 unread notifications
 
+  // New state for Help & Training modal
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [expandedSections, setExpandedSections] = useState<string[]>([]);
+
   const navItems = [
     { name: 'Dashboard', path: '/dashboard' },
     { name: 'Apparel', path: '/dashboard/apparel' },
     { name: 'Inventory', path: '/dashboard/inventory' },
-    { name: 'eComm', path: '/dashboard/ecomm' },
+    { name: 'Projects', path: '/dashboard/projects', icon: 'calendar' },
+  ];
+
+  // Categories for the Help & Training modal
+  const helpCategories = [
+    { 
+      id: 'projects', 
+      name: 'Projects',
+      sections: [
+        { 
+          id: 'users', 
+          title: 'Users',
+          content: 'User management information and guides for the eCommerce platform.'
+        },
+        { 
+          id: 'new-build', 
+          title: 'New Build',
+          content: 'Resources and guides for creating new eCommerce builds, including checklists and best practices.',
+          hasDownload: true
+        },
+        { 
+          id: 'vdps', 
+          title: 'VDPs',
+          content: 'Information about Vehicle Display Pages (VDPs) and how to optimize them for better conversion.',
+          customContent: true
+        },
+        { 
+          id: 'gift-cards', 
+          title: 'Gift Cards',
+          content: 'Learn how to create, manage and process gift cards in the eCommerce system.'
+        },
+        { 
+          id: 'promos', 
+          title: 'Promos',
+          content: 'Creating and managing promotional offers and discount codes.'
+        },
+        { 
+          id: 'spending-accounts', 
+          title: 'Spending Accounts',
+          content: 'How to set up and manage customer spending accounts and loyalty programs.'
+        },
+        { 
+          id: 'orderforge', 
+          title: 'OrderForge',
+          content: 'Complete guide to using the OrderForge system for order processing and management.'
+        },
+        { 
+          id: 'product-onboarding', 
+          title: 'Product Onboarding',
+          content: 'Step-by-step process for adding new products to the eCommerce platform.'
+        },
+        { 
+          id: 'fmg-integration', 
+          title: 'FMG Integration',
+          content: 'Integration guides for connecting with the FMG platform and services.'
+        },
+        { 
+          id: 'frontend', 
+          title: 'Frontend',
+          content: 'Frontend development guidelines and best practices for the eCommerce platform.'
+        },
+        { 
+          id: 'backend', 
+          title: 'Backend',
+          content: 'Backend architecture and API documentation for developers.'
+        }
+      ]
+    },
+    { 
+      id: 'inventory', 
+      name: 'Inventory',
+      sections: [
+        { 
+          id: 'inventory-management', 
+          title: 'Inventory Management',
+          content: 'How to efficiently manage and track inventory across multiple locations.'
+        },
+        { 
+          id: 'reorders', 
+          title: 'Reorders',
+          content: 'Managing inventory reorder points, automatic reordering, and purchase orders.'
+        },
+        { 
+          id: 'usage', 
+          title: 'Usage',
+          content: 'Tracking and analyzing inventory usage patterns and consumption rates.'
+        },
+        { 
+          id: 'sku-assignment', 
+          title: 'SKU Assignment',
+          content: 'Guidelines for creating and managing SKUs, including naming conventions and categorization.'
+        }
+      ]
+    },
+    { 
+      id: 'apparel', 
+      name: 'Apparel',
+      sections: [
+        { 
+          id: 'ordering', 
+          title: 'Ordering Process',
+          content: 'Step-by-step guide to the apparel ordering process.'
+        }
+      ]
+    },
+    { 
+      id: 'shipping', 
+      name: 'Shipping',
+      sections: [
+        { 
+          id: 'shipping-setup', 
+          title: 'Shipping Setup',
+          content: 'How to configure shipping options, rates, and carriers.'
+        },
+        { 
+          id: 'tracking', 
+          title: 'Order Tracking',
+          content: 'Managing shipment tracking and customer notifications.'
+        }
+      ]
+    },
+    { 
+      id: 'order-processing', 
+      name: 'Order Processing',
+      sections: [
+        { 
+          id: 'order-workflow', 
+          title: 'Order Workflow',
+          content: 'End-to-end process for handling orders from submission to fulfillment.'
+        },
+        { 
+          id: 'returns', 
+          title: 'Returns & Exchanges',
+          content: 'How to process returns, exchanges, and refunds in the system.'
+        },
+        { 
+          id: 'order-status', 
+          title: 'Order Status',
+          content: 'Understanding and managing different order statuses and transitions.'
+        },
+        { 
+          id: 'apparel-orders', 
+          title: 'Apparel',
+          content: 'Specific workflow and requirements for processing apparel orders.'
+        },
+        { 
+          id: '4over-orders', 
+          title: '4Over',
+          content: 'Guidelines for managing and processing 4Over print orders.'
+        },
+        { 
+          id: 'promo-orders', 
+          title: 'Promo',
+          content: 'Processing promotional product orders, including vendor coordination and tracking.'
+        },
+        { 
+          id: 'print-orders', 
+          title: 'Print',
+          content: 'Workflow for handling print orders, including file preparation and quality control.'
+        }
+      ]
+    },
+    { 
+      id: 'proposals', 
+      name: 'Proposals',
+      sections: [
+        { 
+          id: 'proposal-creation', 
+          title: 'Proposal Creation',
+          content: 'How to create and format professional proposals for clients.'
+        },
+        { 
+          id: 'templates', 
+          title: 'Templates',
+          content: 'Using and customizing proposal templates for different types of projects.'
+        },
+        { 
+          id: 'follow-up', 
+          title: 'Follow-up Process',
+          content: 'Best practices for proposal follow-up and client engagement.'
+        }
+      ]
+    }
   ];
 
   // Function to handle opening the FAQ modal
   const handleOpenFaqModal = () => {
     setShowFaqModal(true);
+    setActiveCategory(helpCategories[0].id);
+    setExpandedSections([]);
+    setSearchQuery('');
   };
 
   // Function to handle closing the FAQ modal
   const handleCloseFaqModal = () => {
     setShowFaqModal(false);
+  };
+  
+  // Function to toggle section expansion
+  const toggleSection = (sectionId: string) => {
+    if (expandedSections.includes(sectionId)) {
+      setExpandedSections(expandedSections.filter(id => id !== sectionId));
+    } else {
+      setExpandedSections([...expandedSections, sectionId]);
+    }
+  };
+  
+  // VDP process steps for rendering in the content
+  const vdpProcessSteps = [
+    "Gather SOW from Client",
+    "Create a variable product foundation in ProV2",
+    "Create a static TEMP product in ProV2",
+    {
+      main: "Request SOW from prostoresteam@proforma.com - below info needed",
+      sub: [
+        "PDF/INDD/AI vector template (All possible fields filled out)",
+        "Fonts/Images",
+        "Customer Item #",
+        "Static vs Optional vs Required Fields",
+        "Flexing Behavior (Shifting or Font Size Decrease)",
+        "Complexities (Dropdowns, QRs, etc.)"
+      ]
+    },
+    "Receive SOW and approve/deny cost and timeline",
+    "Oversee until completion",
+    "Test",
+    "Make Live"
+  ];
+  
+  // Function to download checklist
+  const downloadChecklist = () => {
+    // In a real implementation, this would trigger a file download
+    alert('Downloading checklist...');
   };
 
   // Function to handle notifications
@@ -316,23 +544,27 @@ const Navbar: React.FC = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ type: 'spring', damping: 25 }}
             style={{
-              position: 'absolute',
+              position: 'fixed',
               left: '50%',
               top: '50%',
               transform: 'translate(-50%, -50%)',
-              width: '80%',
-              maxWidth: '800px',
-              maxHeight: '80vh',
+              width: '70%',
+              maxWidth: '900px',
+              maxHeight: '85vh',
               backgroundColor: 'rgba(20, 20, 30, 0.95)',
               borderRadius: '1rem',
               padding: '2rem',
               boxShadow: '0 0 20px rgba(255, 215, 0, 0.3)',
               border: '1px solid rgba(255, 215, 0, 0.2)',
               overflow: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.5rem',
+              margin: 0
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2 style={{ 
                 fontSize: '1.75rem', 
                 background: 'linear-gradient(to right, #FFD700, #FFA500)',
@@ -363,40 +595,292 @@ const Navbar: React.FC = () => {
               </motion.button>
             </div>
             
+            {/* Search Bar */}
             <div style={{ 
-              backgroundColor: 'rgba(30, 30, 40, 0.5)', 
-              padding: '2rem', 
-              borderRadius: '0.5rem',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              textAlign: 'center' 
+              position: 'relative',
+              width: '100%',
+              marginBottom: '1rem'
             }}>
-              <h3 style={{ marginBottom: '1rem', color: '#FFD700' }}>Coming Soon!</h3>
-              <p style={{ marginBottom: '2rem', lineHeight: '1.6' }}>
-                Our FAQs and training materials are currently in development. 
-                Check back soon for helpful resources and guides to make the most of the platform.
-              </p>
-              <motion.div
-                animate={{ 
-                  boxShadow: ['0 0 5px rgba(255, 215, 0, 0.3)', '0 0 15px rgba(255, 215, 0, 0.7)', '0 0 5px rgba(255, 215, 0, 0.3)']
-                }}
-                transition={{ 
-                  repeat: Infinity, 
-                  duration: 2 
-                }}
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search for help topics..."
                 style={{
-                  width: '100px',
-                  height: '100px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(45deg, #FFD700, #FFA500)',
-                  margin: '0 auto',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '2.5rem',
+                  width: '100%',
+                  padding: '0.75rem 1rem 0.75rem 2.5rem',
+                  borderRadius: '0.5rem',
+                  backgroundColor: 'rgba(30, 30, 40, 0.6)',
+                  border: '1px solid rgba(255, 215, 0, 0.3)',
+                  color: 'white',
+                  fontSize: '1rem',
+                  outline: 'none',
+                }}
+              />
+              <svg 
+                width="18" 
+                height="18" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                style={{
+                  position: 'absolute',
+                  left: '0.75rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: 'rgba(255, 215, 0, 0.7)'
                 }}
               >
-                ?
-              </motion.div>
+                <path 
+                  d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                />
+                <path 
+                  d="M21 21L16.65 16.65" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            
+            <div style={{ 
+              display: 'flex',
+              height: 'calc(100% - 120px)',
+              gap: '1.5rem'
+            }}>
+              {/* Categories */}
+              <div style={{ 
+                width: '250px',
+                borderRight: '1px solid rgba(255, 255, 255, 0.1)',
+                paddingRight: '1rem'
+              }}>
+                {helpCategories.map(category => (
+                  <motion.div
+                    key={category.id}
+                    whileHover={{ backgroundColor: 'rgba(255, 215, 0, 0.1)' }}
+                    onClick={() => setActiveCategory(category.id)}
+                    style={{
+                      padding: '0.75rem 1rem',
+                      borderRadius: '0.5rem',
+                      marginBottom: '0.5rem',
+                      cursor: 'pointer',
+                      backgroundColor: activeCategory === category.id ? 'rgba(255, 215, 0, 0.2)' : 'transparent',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem'
+                    }}
+                  >
+                    <span style={{
+                      color: activeCategory === category.id ? '#FFD700' : 'rgba(255, 255, 255, 0.8)',
+                      fontWeight: activeCategory === category.id ? 600 : 400
+                    }}>
+                      {category.name}
+                    </span>
+                  </motion.div>
+                ))}
+              </div>
+              
+              {/* Content Area */}
+              <div style={{ 
+                flex: '1',
+                overflowY: 'auto',
+              }}>
+                {activeCategory && helpCategories.find(c => c.id === activeCategory)?.sections.map(section => {
+                  // Filter based on search query if present
+                  if (searchQuery && !section.title.toLowerCase().includes(searchQuery.toLowerCase()) && 
+                      !section.content.toLowerCase().includes(searchQuery.toLowerCase())) {
+                    return null;
+                  }
+                  
+                  return (
+                    <motion.div
+                      key={section.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      style={{
+                        marginBottom: '1rem',
+                        backgroundColor: 'rgba(30, 30, 40, 0.5)',
+                        borderRadius: '0.5rem',
+                        overflow: 'hidden',
+                        border: '1px solid rgba(255, 255, 255, 0.1)'
+                      }}
+                    >
+                      <motion.div
+                        whileHover={{ backgroundColor: 'rgba(255, 215, 0, 0.1)' }}
+                        onClick={() => toggleSection(section.id)}
+                        style={{
+                          padding: '1rem',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          position: 'relative'
+                        }}
+                      >
+                        <h3 style={{ 
+                          margin: 0, 
+                          color: '#FFD700',
+                          fontSize: '1.1rem',
+                          fontWeight: 500
+                        }}>
+                          {section.title}
+                        </h3>
+                        <motion.div
+                          animate={{ rotate: expandedSections.includes(section.id) ? 180 : 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path 
+                              d="M6 9L12 15L18 9" 
+                              stroke="rgba(255, 215, 0, 0.8)" 
+                              strokeWidth="2" 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </motion.div>
+                      </motion.div>
+                      
+                      {expandedSections.includes(section.id) && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                          style={{
+                            padding: '0 1rem 1rem 1rem',
+                            borderTop: '1px solid rgba(255, 255, 255, 0.05)'
+                          }}
+                        >
+                          {section.customContent && section.id === 'vdps' ? (
+                            <div>
+                              <p style={{ color: 'rgba(255, 255, 255, 0.8)', lineHeight: '1.6', marginBottom: '15px' }}>
+                                Information about Vehicle Display Pages (VDPs) and how to optimize them for better conversion.
+                              </p>
+                              <div style={{ 
+                                marginTop: '15px', 
+                                marginBottom: '15px', 
+                                padding: '20px', 
+                                backgroundColor: 'rgba(30, 30, 40, 0.3)', 
+                                borderRadius: '8px'
+                              }}>
+                                <h4 style={{ marginBottom: '15px', fontSize: '1.1rem' }}>VDP Creation Process:</h4>
+                                <ol style={{ paddingLeft: '20px', lineHeight: '1.8' }}>
+                                  {vdpProcessSteps.map((step, index) => (
+                                    typeof step === 'string' ? (
+                                      <li key={index} style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                                        {step}
+                                      </li>
+                                    ) : (
+                                      <li key={index} style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                                        {step.main.split('prostoresteam@proforma.com').map((part, i, arr) => (
+                                          i === 0 ? (
+                                            <React.Fragment key={i}>
+                                              {part}
+                                              <a 
+                                                href="mailto:prostoresteam@proforma.com" 
+                                                style={{color: '#FFD700', textDecoration: 'underline'}}
+                                              >
+                                                prostoresteam@proforma.com
+                                              </a>
+                                              {arr.length > 1 && arr[1]}
+                                            </React.Fragment>
+                                          ) : null
+                                        ))}
+                                        <ol type="a" style={{ paddingLeft: '25px', lineHeight: '1.6', marginTop: '8px' }}>
+                                          {step.sub.map((subStep, subIndex) => (
+                                            <li key={subIndex} style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
+                                              {subStep}
+                                            </li>
+                                          ))}
+                                        </ol>
+                                      </li>
+                                    )
+                                  ))}
+                                </ol>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <p style={{ color: 'rgba(255, 255, 255, 0.8)', lineHeight: '1.6' }}>
+                                {section.content}
+                              </p>
+                              
+                              {section.hasDownload && (
+                                <motion.button
+                                  whileHover={{ 
+                                    scale: 1.03,
+                                    backgroundColor: 'rgba(255, 215, 0, 0.3)'
+                                  }}
+                                  whileTap={{ scale: 0.97 }}
+                                  onClick={downloadChecklist}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    padding: '0.5rem 1rem',
+                                    background: 'rgba(255, 215, 0, 0.2)',
+                                    border: '1px solid rgba(255, 215, 0, 0.5)',
+                                    borderRadius: '0.5rem',
+                                    color: 'white',
+                                    cursor: 'pointer',
+                                    fontSize: '0.9rem',
+                                    marginTop: '1rem'
+                                  }}
+                                >
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path 
+                                      d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" 
+                                      stroke="currentColor" 
+                                      strokeWidth="2" 
+                                      strokeLinecap="round" 
+                                      strokeLinejoin="round"
+                                    />
+                                    <path 
+                                      d="M7 10L12 15L17 10" 
+                                      stroke="currentColor" 
+                                      strokeWidth="2" 
+                                      strokeLinecap="round" 
+                                      strokeLinejoin="round"
+                                    />
+                                    <path 
+                                      d="M12 15V3" 
+                                      stroke="currentColor" 
+                                      strokeWidth="2" 
+                                      strokeLinecap="round" 
+                                      strokeLinejoin="round"
+                                    />
+                                  </svg>
+                                  Download Checklist
+                                </motion.button>
+                              )}
+                            </>
+                          )}
+                        </motion.div>
+                      )}
+                </motion.div>
+                  );
+                })}
+                
+                {/* Show message when no search results */}
+                {searchQuery && activeCategory && helpCategories.find(c => c.id === activeCategory)?.sections.every(
+                  section => !section.title.toLowerCase().includes(searchQuery.toLowerCase()) && 
+                            !section.content.toLowerCase().includes(searchQuery.toLowerCase())
+                ) && (
+                  <div style={{ 
+                    textAlign: 'center', 
+                    padding: '2rem',
+                    color: 'rgba(255, 255, 255, 0.7)'
+                  }}>
+                    <p>No results found for "{searchQuery}"</p>
+                  </div>
+                )}
+              </div>
             </div>
           </motion.div>
         </motion.div>

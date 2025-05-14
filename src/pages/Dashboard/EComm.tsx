@@ -44,7 +44,7 @@ interface Task {
   tags: string[];
 }
 
-const EComm: React.FC = () => {
+const Projects: React.FC = () => {
   // Sample project data
   const [projects, setProjects] = useState<Project[]>([
     { 
@@ -216,6 +216,9 @@ const EComm: React.FC = () => {
       tags: ['SEO', 'Content']
     },
   ]);
+
+  // View mode state (list or board)
+  const [viewMode, setViewMode] = useState<'list' | 'board'>('list');
 
   // Filter states for projects
   const [statusFilter, setStatusFilter] = useState<string>('All');
@@ -442,10 +445,10 @@ const EComm: React.FC = () => {
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
           }}>
-            eComm Projects
+            Projects
           </h1>
           <p style={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-            Manage e-commerce projects, assign tasks, and track progress.
+            Manage projects, assign tasks, and track progress.
           </p>
         </div>
 
@@ -582,6 +585,62 @@ const EComm: React.FC = () => {
             gap: '1rem'
           }}
         >
+          {/* View Toggle */}
+          <div style={{
+            display: 'flex',
+            background: 'rgba(30, 30, 40, 0.6)',
+            borderRadius: '0.5rem',
+            overflow: 'hidden',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+          }}>
+            <button
+              onClick={() => setViewMode('list')}
+              style={{
+                padding: '0.6rem 1rem',
+                background: viewMode === 'list' ? 'rgba(255, 215, 0, 0.2)' : 'transparent',
+                border: 'none',
+                color: viewMode === 'list' ? 'rgba(255, 215, 0, 0.9)' : 'rgba(255, 255, 255, 0.7)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 6H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M8 12H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M8 18H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M3 6H3.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M3 12H3.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M3 18H3.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span>List</span>
+            </button>
+            <button
+              onClick={() => setViewMode('board')}
+              style={{
+                padding: '0.6rem 1rem',
+                background: viewMode === 'board' ? 'rgba(255, 215, 0, 0.2)' : 'transparent',
+                border: 'none',
+                color: viewMode === 'board' ? 'rgba(255, 215, 0, 0.9)' : 'rgba(255, 255, 255, 0.7)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 3H3V10H10V3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M21 3H14V10H21V3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M21 14H14V21H21V14Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M10 14H3V21H10V14Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span>Board</span>
+            </button>
+          </div>
+
           {/* Search Input */}
           <div style={{
             position: 'relative',
@@ -737,9 +796,524 @@ const EComm: React.FC = () => {
             </motion.button>
           </div>
         </motion.div>
+
+        {/* Project Views */}
+        <AnimatePresence mode="wait">
+          {viewMode === 'list' ? (
+            <motion.div
+              key="list-view"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+              style={{
+                background: 'rgba(20, 20, 30, 0.6)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '1rem',
+                overflow: 'hidden',
+                border: '1px solid rgba(255, 215, 0, 0.2)',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                marginBottom: '1.5rem'
+              }}
+            >
+              {/* List View Content */}
+              <div style={{ padding: '1.5rem' }}>
+                <h2 style={{ 
+                  fontSize: '1.25rem', 
+                  marginBottom: '1.5rem', 
+                  color: 'rgba(255, 215, 0, 0.9)',
+                  borderBottom: '1px solid rgba(255, 215, 0, 0.3)',
+                  paddingBottom: '0.5rem'
+                }}>
+                  Project List
+                </h2>
+                
+                {/* Projects Table */}
+                <div style={{ width: '100%', overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '650px' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: 'rgba(30, 30, 40, 0.6)', textAlign: 'left' }}>
+                        <th 
+                          style={{ padding: '1rem', cursor: 'pointer' }}
+                          onClick={() => requestSort('name')}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span>Project</span>
+                            {sortConfig?.key === 'name' && (
+                              <span>{sortConfig.direction === 'ascending' ? '↑' : '↓'}</span>
+                            )}
+                          </div>
+                        </th>
+                        <th 
+                          style={{ padding: '1rem', cursor: 'pointer' }}
+                          onClick={() => requestSort('client')}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span>Client</span>
+                            {sortConfig?.key === 'client' && (
+                              <span>{sortConfig.direction === 'ascending' ? '↑' : '↓'}</span>
+                            )}
+                          </div>
+                        </th>
+                        <th 
+                          style={{ padding: '1rem', cursor: 'pointer' }}
+                          onClick={() => requestSort('status')}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span>Status</span>
+                            {sortConfig?.key === 'status' && (
+                              <span>{sortConfig.direction === 'ascending' ? '↑' : '↓'}</span>
+                            )}
+                          </div>
+                        </th>
+                        <th 
+                          style={{ padding: '1rem', cursor: 'pointer' }}
+                          onClick={() => requestSort('progress')}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span>Progress</span>
+                            {sortConfig?.key === 'progress' && (
+                              <span>{sortConfig.direction === 'ascending' ? '↑' : '↓'}</span>
+                            )}
+                          </div>
+                        </th>
+                        <th 
+                          style={{ padding: '1rem', cursor: 'pointer' }}
+                          onClick={() => requestSort('deadline')}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span>Deadline</span>
+                            {sortConfig?.key === 'deadline' && (
+                              <span>{sortConfig.direction === 'ascending' ? '↑' : '↓'}</span>
+                            )}
+                          </div>
+                        </th>
+                        <th style={{ padding: '1rem', textAlign: 'right' }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredProjects.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} style={{ padding: '2rem 1rem', textAlign: 'center', color: 'rgba(255, 255, 255, 0.5)' }}>
+                            No projects found matching your filters.
+                          </td>
+                        </tr>
+                      ) : (
+                        filteredProjects.map((project, index) => (
+                          <React.Fragment key={project.id}>
+                            <motion.tr 
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: index * 0.05 }}
+                              whileHover={{ backgroundColor: 'rgba(30, 30, 40, 0.8)' }}
+                              onClick={() => toggleProject(project.id)}
+                              style={{ 
+                                backgroundColor: expandedProject === project.id 
+                                  ? 'rgba(255, 215, 0, 0.1)' 
+                                  : index % 2 === 0 ? 'transparent' : 'rgba(30, 30, 40, 0.3)',
+                                borderBottom: expandedProject === project.id
+                                  ? 'none'
+                                  : '1px solid rgba(255, 255, 255, 0.05)',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <td style={{ padding: '1rem' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                  <span style={{
+                                    fontSize: '0.875rem',
+                                    transform: expandedProject === project.id ? 'rotate(90deg)' : 'rotate(0)',
+                                    transition: 'transform 0.2s ease'
+                                  }}>▶</span>
+                                  <div>
+                                    <div style={{ fontWeight: 'bold' }}>{project.name}</div>
+                                    <div style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.6)' }}>#{project.id}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td style={{ padding: '1rem' }}>{project.client}</td>
+                              <td style={{ padding: '1rem' }}>
+                                <span 
+                                  style={{
+                                    padding: '0.25rem 0.5rem',
+                                    borderRadius: '1rem',
+                                    fontSize: '0.8rem',
+                                    backgroundColor: getStatusBgColor(project.status),
+                                    color: getStatusColor(project.status),
+                                  }}
+                                >
+                                  {project.status}
+                                </span>
+                              </td>
+                              <td style={{ padding: '1rem' }}>
+                                <div style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                  <div style={{ 
+                                    flex: 1,
+                                    height: '6px', 
+                                    backgroundColor: 'rgba(255, 255, 255, 0.1)', 
+                                    borderRadius: '3px', 
+                                    overflow: 'hidden' 
+                                  }}>
+                                    <div style={{ 
+                                      height: '100%', 
+                                      width: `${project.progress}%`, 
+                                      backgroundColor: getPriorityColor(project.priority),
+                                      borderRadius: '3px',
+                                    }}/>
+                                  </div>
+                                  <span style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.7)' }}>
+                                    {project.progress}%
+                                  </span>
+                                </div>
+                              </td>
+                              <td style={{ padding: '1rem' }}>
+                                {formatDate(project.deadline)}
+                              </td>
+                              <td style={{ padding: '1rem' }}>
+                                <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                                  <motion.button
+                                    whileHover={{ 
+                                      scale: 1.1, 
+                                      color: 'rgba(255, 215, 0, 1)',
+                                      boxShadow: '0 0 10px rgba(255, 215, 0, 0.3)'
+                                    }}
+                                    whileTap={{ scale: 0.9 }}
+                                    title="Edit Project"
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{
+                                      width: '32px',
+                                      height: '32px',
+                                      borderRadius: '50%',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      background: 'rgba(255, 215, 0, 0.15)',
+                                      border: '1px solid rgba(255, 215, 0, 0.5)',
+                                      color: 'rgba(255, 215, 0, 0.7)',
+                                      cursor: 'pointer',
+                                      fontSize: '0.875rem'
+                                    }}
+                                  >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                      <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                  </motion.button>
+                                  <motion.button
+                                    whileHover={{ 
+                                      scale: 1.1, 
+                                      color: 'rgba(255, 215, 0, 1)',
+                                      boxShadow: '0 0 10px rgba(255, 215, 0, 0.3)'
+                                    }}
+                                    whileTap={{ scale: 0.9 }}
+                                    title="View Details"
+                                    onClick={(e) => e.stopPropagation()}
+                                    style={{
+                                      width: '32px',
+                                      height: '32px',
+                                      borderRadius: '50%',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      background: 'rgba(255, 215, 0, 0.15)',
+                                      border: '1px solid rgba(255, 215, 0, 0.5)',
+                                      color: 'rgba(255, 215, 0, 0.7)',
+                                      cursor: 'pointer',
+                                      fontSize: '0.875rem'
+                                    }}
+                                  >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M1 12C1 12 5 4 12 4C19 4 23 12 23 12C23 12 19 20 12 20C5 20 1 12 1 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                      <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                  </motion.button>
+                                </div>
+                              </td>
+                            </motion.tr>
+                          </React.Fragment>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="board-view"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              {/* Board View - will be implemented with draggable cards */}
+              <div style={{ 
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                gap: '1.5rem',
+                marginBottom: '1.5rem'
+              }}>
+                {/* Status Columns */}
+                {['Planning', 'In Progress', 'Review', 'Completed'].map((status) => (
+                  <div
+                    key={status}
+                    style={{
+                      background: 'rgba(20, 20, 30, 0.6)',
+                      backdropFilter: 'blur(10px)',
+                      borderRadius: '1rem',
+                      padding: '1.5rem',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      minHeight: '400px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                    }}
+                  >
+                    <h3 style={{ 
+                      fontSize: '1rem', 
+                      marginBottom: '1rem', 
+                      color: getStatusColor(status),
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}>
+                      <span>{status}</span>
+                      <span style={{ 
+                        fontSize: '0.8rem', 
+                        padding: '0.2rem 0.5rem', 
+                        background: getStatusBgColor(status),
+                        borderRadius: '1rem',
+                      }}>
+                        {projects.filter(p => p.status === status).length}
+                      </span>
+                    </h3>
+
+                    {/* Project Cards - to be implemented with drag and drop */}
+                    <div style={{ flex: 1 }}>
+                      {filteredProjects.filter(p => p.status === status).length === 0 ? (
+                        <div style={{ 
+                          textAlign: 'center', 
+                          padding: '2rem 0',
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          color: 'rgba(255, 255, 255, 0.4)',
+                          border: '2px dashed rgba(255, 255, 255, 0.1)',
+                          borderRadius: '0.5rem',
+                        }}>
+                          <div style={{ marginBottom: '0.5rem' }}>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M12 5V19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </div>
+                          <p style={{ fontSize: '0.8rem' }}>Drag items here</p>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                          {filteredProjects
+                            .filter(p => p.status === status)
+                            .map((project) => (
+                              <motion.div
+                                key={project.id}
+                                whileHover={{ y: -5, boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)' }}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                style={{
+                                  background: 'rgba(30, 30, 40, 0.6)',
+                                  backdropFilter: 'blur(10px)',
+                                  borderRadius: '0.75rem',
+                                  padding: '1rem',
+                                  border: `1px solid ${getStatusBgColor(project.status)}`,
+                                  boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+                                  cursor: 'grab',
+                                  position: 'relative',
+                                }}
+                              >
+                                {/* Priority indicator */}
+                                <div style={{ 
+                                  position: 'absolute', 
+                                  top: '0.75rem', 
+                                  right: '0.75rem',
+                                  width: '8px',
+                                  height: '8px',
+                                  borderRadius: '50%',
+                                  backgroundColor: getPriorityColor(project.priority)
+                                }} title={`Priority: ${project.priority}`} />
+
+                                {/* Project name and ID */}
+                                <div style={{ marginBottom: '0.5rem' }}>
+                                  <h4 style={{ 
+                                    fontSize: '1rem', 
+                                    fontWeight: 'bold', 
+                                    color: 'white',
+                                    marginBottom: '0.25rem'
+                                  }}>
+                                    {project.name}
+                                  </h4>
+                                  <div style={{ 
+                                    display: 'flex', 
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center'
+                                  }}>
+                                    <span style={{ 
+                                      fontSize: '0.75rem', 
+                                      color: 'rgba(255, 255, 255, 0.5)',
+                                    }}>
+                                      {project.id}
+                                    </span>
+                                    <span style={{ 
+                                      fontSize: '0.75rem', 
+                                      color: 'rgba(255, 255, 255, 0.7)',
+                                    }}>
+                                      {project.client}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Progress bar */}
+                                <div style={{ marginBottom: '0.75rem' }}>
+                                  <div style={{ 
+                                    display: 'flex', 
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    marginBottom: '0.25rem',
+                                  }}>
+                                    <span style={{ 
+                                      fontSize: '0.75rem', 
+                                      color: 'rgba(255, 255, 255, 0.7)',
+                                    }}>
+                                      Progress
+                                    </span>
+                                    <span style={{ 
+                                      fontSize: '0.75rem', 
+                                      color: 'rgba(255, 255, 255, 0.7)',
+                                    }}>
+                                      {project.progress}%
+                                    </span>
+                                  </div>
+                                  <div style={{ 
+                                    height: '4px', 
+                                    backgroundColor: 'rgba(255, 255, 255, 0.1)', 
+                                    borderRadius: '2px', 
+                                    overflow: 'hidden' 
+                                  }}>
+                                    <div style={{ 
+                                      height: '100%', 
+                                      width: `${project.progress}%`, 
+                                      backgroundColor: getPriorityColor(project.priority),
+                                      borderRadius: '2px',
+                                    }}/>
+                                  </div>
+                                </div>
+
+                                {/* Bottom info */}
+                                <div style={{ 
+                                  display: 'flex', 
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  fontSize: '0.75rem',
+                                  color: 'rgba(255, 255, 255, 0.6)',
+                                }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M12 8V12L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                      <path d="M3.05 11C3.27246 7.94668 4.72033 5.14795 7.0534 3.22682C9.38648 1.3057 12.3797 0.435088 15.3667 0.865878C18.3536 1.29667 21.0353 2.98547 22.7021 5.52265C24.3688 8.05983 24.8539 11.2043 24.0414 14.1335C23.2289 17.0628 21.1817 19.5323 18.428 20.9562C15.6744 22.3801 12.4638 22.6365 9.53434 21.6716C6.60486 20.7066 4.21619 18.5941 2.90082 15.8379C1.58545 13.0816 1.44307 9.93239 2.5 7.05" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                    <span>{formatDate(project.deadline)}</span>
+                                  </div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                      <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                      <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                      <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                    <span>{project.team.length}</span>
+                                  </div>
+                                </div>
+
+                                {/* Quick Actions */}
+                                <div style={{ 
+                                  display: 'flex',
+                                  justifyContent: 'flex-end',
+                                  marginTop: '0.75rem',
+                                  gap: '0.5rem'
+                                }}>
+                                  <motion.button
+                                    whileHover={{ 
+                                      scale: 1.1, 
+                                      color: 'rgba(255, 215, 0, 1)',
+                                    }}
+                                    whileTap={{ scale: 0.9 }}
+                                    title="Edit Project"
+                                    style={{
+                                      width: '24px',
+                                      height: '24px',
+                                      borderRadius: '50%',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      background: 'transparent',
+                                      border: 'none',
+                                      color: 'rgba(255, 255, 255, 0.5)',
+                                      cursor: 'pointer',
+                                      fontSize: '0.75rem',
+                                      padding: 0
+                                    }}
+                                  >
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                      <path d="M18.5 2.50001C18.8978 2.10219 19.4374 1.87869 20 1.87869C20.5626 1.87869 21.1022 2.10219 21.5 2.50001C21.8978 2.89784 22.1213 3.4374 22.1213 4.00001C22.1213 4.56262 21.8978 5.10219 21.5 5.50001L12 15L8 16L9 12L18.5 2.50001Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                  </motion.button>
+                                  <motion.button
+                                    whileHover={{ 
+                                      scale: 1.1, 
+                                      color: 'rgba(255, 215, 0, 1)',
+                                    }}
+                                    whileTap={{ scale: 0.9 }}
+                                    title="View Tasks"
+                                    style={{
+                                      width: '24px',
+                                      height: '24px',
+                                      borderRadius: '50%',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      background: 'transparent',
+                                      border: 'none',
+                                      color: 'rgba(255, 255, 255, 0.5)',
+                                      cursor: 'pointer',
+                                      fontSize: '0.75rem',
+                                      padding: 0
+                                    }}
+                                  >
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M8 6H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                      <path d="M8 12H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                      <path d="M8 18H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                      <path d="M3 6H3.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                      <path d="M3 12H3.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                      <path d="M3 18H3.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                    </svg>
+                                  </motion.button>
+                                </div>
+                              </motion.div>
+                            ))
+                          }
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </div>
   );
 };
 
-export default EComm; 
+export default Projects; 

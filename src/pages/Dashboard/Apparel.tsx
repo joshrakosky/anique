@@ -542,12 +542,39 @@ const Apparel: React.FC = () => {
             </p>
           </motion.div>
 
-          {/* In Production */}
+          {/* Total Qty - Changed from In Production */}
           <motion.div
             whileHover={{ y: -5, boxShadow: '0 10px 20px rgba(0, 0, 0, 0.2)' }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
+            style={{
+              background: 'rgba(20, 20, 30, 0.6)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '1rem',
+              padding: '1.5rem',
+              border: '1px solid rgba(255, 215, 0, 0.2)',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+            }}
+          >
+            <h3 style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.7)', marginBottom: '0.5rem' }}>
+              Total Qty
+            </h3>
+            <p style={{ 
+              fontSize: '1.75rem', 
+              fontWeight: 'bold',
+              fontFamily: "'Rajdhani', sans-serif",
+            }}>
+              {totalItems.toLocaleString()}
+            </p>
+          </motion.div>
+
+          {/* In Production - Changed from Received */}
+          <motion.div
+            whileHover={{ y: -5, boxShadow: '0 10px 20px rgba(0, 0, 0, 0.2)' }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
             style={{
               background: 'rgba(20, 20, 30, 0.6)',
               backdropFilter: 'blur(10px)',
@@ -570,35 +597,7 @@ const Apparel: React.FC = () => {
             </p>
           </motion.div>
 
-          {/* Received */}
-          <motion.div
-            whileHover={{ y: -5, boxShadow: '0 10px 20px rgba(0, 0, 0, 0.2)' }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
-            style={{
-              background: 'rgba(20, 20, 30, 0.6)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '1rem',
-              padding: '1.5rem',
-              border: '1px solid rgba(255, 215, 0, 0.2)',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-            }}
-          >
-            <h3 style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.7)', marginBottom: '0.5rem' }}>
-              Received
-            </h3>
-            <p style={{ 
-              fontSize: '1.75rem', 
-              fontWeight: 'bold',
-              fontFamily: "'Rajdhani', sans-serif",
-              color: 'rgba(130, 180, 255, 0.9)',
-            }}>
-              {groupedOrders.filter(order => order.status === 'Received').length}
-            </p>
-          </motion.div>
-
-          {/* Shipped */}
+          {/* Current Production Days - Changed from Shipped */}
           <motion.div
             whileHover={{ y: -5, boxShadow: '0 10px 20px rgba(0, 0, 0, 0.2)' }}
             initial={{ opacity: 0, y: 20 }}
@@ -614,7 +613,7 @@ const Apparel: React.FC = () => {
             }}
           >
             <h3 style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.7)', marginBottom: '0.5rem' }}>
-              Shipped
+              Current Production Days
             </h3>
             <p style={{ 
               fontSize: '1.75rem', 
@@ -622,7 +621,7 @@ const Apparel: React.FC = () => {
               fontFamily: "'Rajdhani', sans-serif",
               color: 'rgba(0, 200, 83, 0.9)',
             }}>
-              {groupedOrders.filter(order => order.status === 'Shipped').length}
+              6
             </p>
           </motion.div>
         </div>
@@ -795,30 +794,28 @@ const Apparel: React.FC = () => {
             {/* Analytics Button */}
             <motion.button
               whileHover={{ 
-                scale: 1.1, 
-                backgroundColor: 'rgba(255, 215, 0, 0.3)',
-                boxShadow: '0 0 15px rgba(255, 215, 0, 0.3)'
+                scale: 1.05
               }}
-              whileTap={{ scale: 0.97 }}
+              whileTap={{ scale: 0.95 }}
               onClick={openAnalytics}
               style={{
-                width: '40px',
-                height: '40px',
+                width: '36px',
+                height: '36px',
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: 'rgba(255, 215, 0, 0.2)',
-                border: '1px solid rgba(255, 215, 0, 0.5)',
-                color: 'white',
+                background: '#FFD700',
+                border: 'none',
+                color: '#000',
                 cursor: 'pointer',
-                fontSize: '1.2rem',
               }}
               title="Analytics"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21 21H3V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M21 7L12.5 15.5L8.5 11.5L3 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 20V10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M12 20V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M6 20V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </motion.button>
           </div>
